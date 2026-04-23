@@ -1,0 +1,1235 @@
+
+%%
+%% forked from https://gits-15.sys.kth.se/giampi/kthlatex kthlatex-0.2rc4 on 2020-02-13
+%% expanded upon by Gerald Q. Maguire Jr.
+%% This template has been adapted by Anders Sjögren to the University
+%% Engineering Program in Computer Science at KTH ICT. This adaptation was
+%% translation of English headings into Swedish with the addition of Swedish.
+%% Many thanks to others who have provided constructive input regarding the template.
+
+% Make it possible to conditionally depend on the TeX engine used
+\RequirePackage{ifxetex}
+\RequirePackage{ifluatex}
+\newif\ifxeorlua
+\ifxetex\xeorluatrue\fi
+\ifluatex\xeorluatrue\fi
+
+\ifxeorlua
+% The following is to ensure that the PDF uses a recent version rather than the typical PDF 1-5
+%  This same version of PDF should be set as an option for hyperef
+
+\RequirePackage{expl3}
+\RequirePackage{etoolbox}
+
+
+\ExplSyntaxOn
+%pdf_version_gset:n{2.0}
+%\pdf_version_gset:n{1.5}
+
+%% Alternatively, if you have a LaTeX newer than June 2022, you can use the following. However, then you have to remove the pdfversion from hyperef. It also breaks hyperxmp. So perhaps it is too early to try using it!
+%\DocumentMetadata
+%{
+%% testphase = phase-I, % tagging without paragraph tagging
+% testphase = phase-II % tagging with paragraph tagging and other new stuff.
+%pdfversion = 2.0 % pdfversion must be set here.
+%}
+
+% Optionally, you can set the uncompress flag to make it easier to examine the PDF
+%\pdf_uncompress: % to check the pdf
+\ExplSyntaxOff
+\else
+\RequirePackage{expl3}
+\ExplSyntaxOn
+%\pdf_version_gset:n{2.0}
+\pdf_version_gset:n{1.5}
+\ExplSyntaxOff
+\fi
+
+%% Define a pair of commands to disable and reenable specific packages - see https://tex.stackexchange.com/questions/39415/unload-a-latex-package
+\makeatletter
+\newcommand{\disablepackage}[2]{%
+  \disable@package@load{#1}{#2}%
+}
+\newcommand{\reenablepackage}[1]{%
+  \reenable@package@load{#1}%
+}
+\makeatother
+%% To avoid the warning: "Package transparent Warning: Loading aborted, because pdfTeX is not running in PDF mode."
+\ifxeorlua
+\disablepackage{transparent}{}
+\fi
+
+%% The template is designed to handle a thesis in English or Swedish
+\documentclass[
+english,                 % the language of the body of the document: english or swedish       (note this must be in lower case)
+bibtex,                  % the bibliographic processor to use: biblatex or bibtex
+%nomenclature,           % add the option nomenclature
+%digitaloutput,          % optimize for digital output (this changes the color palette)
+%includeExtraAbstracts, % uncomment to allow abstracts in languages beyond English & Swedish
+]{kththesis}
+
+% if pdflatex \usepackage[utf8]{inputenc}
+
+%% Conventions for todo notes:
+% Informational
+%% \generalExpl{Comments/directions/... in English}
+\newcommand*{\generalExpl}[1]{\todo[inline]{#1}}                
+
+% Language-specific information (currently in English or Swedish)
+\newcommand*{\engExpl}[1]{\todo[inline, backgroundcolor=kth-lightgreen40]{#1}} %% \engExpl{English descriptions about formatting}
+\newcommand*{\sweExpl}[1]{\todo[inline, backgroundcolor=kth-lightblue40]{#1}}  %% % \sweExpl{Text på svenska}
+
+% warnings
+\newcommand*{\warningExpl}[1]{\todo[inline, backgroundcolor=kth-lightred40]{#1}} %% \warningExpl{warnings}
+
+% Uncomment to hide specific comments, to hide **all** ToDos add `final` to
+% document class
+% \renewcommand\warningExpl[1]{}
+% \renewcommand\generalExpl[1]{}
+% \renewcommand\engExpl[1]{}
+% For example uncommenting the following line hides the Swedish language explanations
+% \renewcommand\sweExpl[1]{}
+
+
+% \usepackage[style=numeric,sorting=none,backend=biber]{biblatex}
+\iftoggle{biblatex}{
+    %\usepackage[language=english,bibstyle=authoryear,citestyle=authoryear, maxbibnames=99]{biblatex}
+    % Alternatively you might use another style, such as IEEE and use citestyle=numeric-comp  to put multiple citations in a single pair of square brackets
+    \usepackage[style=ieee,citestyle=numeric-comp]{biblatex}
+    \addbibresource{references.bib}
+    %\DeclareLanguageMapping{norsk}{norwegian}
+}{
+    % The line(s) below are for BibTeX
+    \bibliographystyle{bibstyle/myIEEEtran}
+    %\bibliographystyle{apalike}
+}
+
+
+% include a variety of packages that are useful
+\input{lib/includes}
+\input{lib/kthcolors}
+
+%\glsdisablehyper
+%\makeglossaries
+%\makenoidxglossaries
+%\input{lib/acronyms}                %load the acronyms file
+
+\input{lib/defines}  % load some additional definitions to make writing more consistent
+
+% The following is needed in conjunction with generating the DiVA data with abstracts and keywords using the scontents package and a modified listings environment
+%\usepackage{listings}   %  already included
+
+\makeatletter
+\let\verbatimsc\@undefined
+\let\endverbatimsc\@undefined
+\lst@AddToHook{Init}{\hyphenpenalty=50\relax}
+\makeatother
+
+
+\lstnewenvironment{verbatimsc}
+    {
+    \lstset{%
+        basicstyle=\ttfamily\tiny,
+        backgroundcolor=\color{white},
+        %basicstyle=\tiny,
+        %columns=fullflexible,
+        columns=[l]fixed,
+        language=[LaTeX]TeX,
+        %numbers=left,
+        %numberstyle=\tiny\color{gray},
+        keywordstyle=\color{red},
+        breaklines=true,                 % sets automatic line breaking
+        breakatwhitespace=true,          % sets if automatic breaks should only happen at whitespace
+        %keepspaces=false,
+        breakindent=0em,
+        %fancyvrb=true,
+        frame=none,                     % turn off any box
+        postbreak={}                    % turn off any hook arrow for continuation lines
+    }
+}{}
+
+%% Add some more keywords to bring out the structure more
+\lstdefinestyle{[LaTeX]TeX}{
+morekeywords={begin, todo, textbf, textit, texttt}
+}
+
+%% definition of new command for bytefield package
+\newcommand{\colorbitbox}[3]{%
+	\rlap{\bitbox{#2}{\color{#1}\rule{\width}{\height}}}%
+	\bitbox{#2}{#3}}
+
+
+
+
+% define a left aligned table cell that is ragged right
+\newcolumntype{L}[1]{>{\raggedright\let\newline\\\arraybackslash\hspace{0pt}}p{#1}}
+
+% Because backref is not compatible with biblatex
+\iftoggle{biblatex}{
+    \usepackage[plainpages=false]{hyperref}
+}{
+    \usepackage[
+    backref=page,
+    pagebackref=false,
+    plainpages=false,
+                            % PDF related options
+    unicode=true,           % Unicode encoded PDF strings
+    bookmarks=true,         % generate bookmarks in PDF files
+    bookmarksopen=false,    % Do not automatically open the bookmarks in the PDF reading program
+    pdfpagemode=UseNone,    % None, UseOutlines, UseThumbs, or FullScreen
+    destlabel,              % better naming of destinations
+    pdfencoding=auto,       % for unicode in 
+    ]{hyperref}
+   %% Removed use of backref package as it is incompatible with using attachfile
+}
+
+\usepackage[all]{hypcap}	%% prevents an issue related to hyperref and caption linking
+
+%% Acronyms
+% note that nonumberlist - removes the cross references to the pages where the acronym appears
+% note that super will set the descriptions text aligned
+% note that nomain - does not produce a main glossary, thus only acronyms will be in the glossary
+% note that nopostdot - will prevent there being a period at the end of each entry
+\usepackage[acronym, style=super, section=section, nonumberlist, nomain,
+nopostdot]{glossaries}
+\setlength{\glsdescwidth}{0.75\textwidth}
+\usepackage[]{glossaries-extra}
+\ifinswedish
+    %\usepackage{glossaries-swedish}
+\fi
+
+%% For use with the README_notes
+% Define a new type of glossary so that the acronyms defined in the README_notes document can be distinct from those in the thesis template
+% the tlg, tld, and dn will be the file extensions used for this glossary
+\newglossary[tlg]{readme}{tld}{tdn}{README acronyms}
+
+
+\input{lib/includes-after-hyperref}
+
+%\glsdisablehyper
+\makeglossaries
+%\makenoidxglossaries
+
+% The following bit of ugliness is because of the problems PDFLaTeX has handling a non-breaking hyphen
+% unless it is converted to UTF-8 encoding.
+% If you do not use such characters in your acronyms, this could be simplified to just include the acronyms file.
+\ifxeorlua
+\input{lib/acronyms}                %load the acronyms file
+\else
+\input{lib/acronyms-for-pdflatex}
+\fi
+
+% place holders for languages lacking .lbx files
+\input{lib/placeHolder_lbx_files}
+
+% insert the configuration information with author(s), examiner, supervisor(s), ...
+\input{custom_configuration}
+
+% read in the plain text definitions, if they exist
+\IfFileExists{custom_configuration_plaintext.tex}{\input{custom_configuration_plaintext.tex}}{}
+
+
+% Enter the English and Swedish keywords here for use in the PDF metadata _and_ for later use
+% following the respective abstract.
+% Try to put the words in the same order in both languages to facilitate matching. For example:
+\EnglishKeywords{KeywordA, KeywordB, KeywordC}
+\SwedishKeywords{NyckelordA, NyckelordB, NyckelordC}
+
+%%%%% For the oral presentation
+%% Add this information once your examiner has scheduled your oral presentation
+\presentationDateAndTimeISO{2022-03-15 13:00}
+\presentationLanguage{XXX}  % generally: eng or swe
+\presentationRoom{via Zoom https://kth-se.zoom.us/j/ddddddddddd}
+\presentationAddress{Isafjordsgatan 22 (Kistagången 16)}
+\presentationCity{Stockholm}
+
+% When there are multiple opponents, separate their names with '\&'
+% Opponent's information
+%\opponentsNames{A. B. Normal \& A. X. E. Normalè}
+\opponentsNames{XXX}
+
+% It is possible to have a cover illustration
+%\coverIllustration{figures/image1.png}
+% if so, the author might acknowledge this or give the copyright information for it with:
+%\coverIllustrationCredit{A. B. Normal}
+
+% Once a thesis is approved by the examiner, add the TRITA number
+% The TRITA number for a thesis consists of two parts: a series (unique to each school)
+% and the number in the series, which is formatted as the year followed by a colon and
+% then a unique series number for the thesis - starting with 1 each year.
+\trita{TRITA -- XXX-EX}{2025:0000}
+
+% Put the title, author, and keyword information into the PDF meta information
+\input{lib/pdf_related_includes}
+
+
+% the custom colors and the commands are defined in defines.tex    
+\hypersetup{
+	colorlinks  = true,
+	breaklinks  = true,
+	linkcolor   = \linkscolor,
+	urlcolor    = \urlscolor,
+	citecolor   = \refscolor,
+	anchorcolor = black
+}
+
+\ifnomenclature
+% The following lines make the page numbers and equations hyperlinks in the Nomenclature list
+\renewcommand*{\pagedeclaration}[1]{\unskip, \dotfill\hyperlink{page.#1}{page\nobreakspace#1}}
+% The following does not work correctly, as the name of the cross-reference is incorrect
+%\renewcommand*{\eqdeclaration}[1]{, see equation\nobreakspace(\hyperlink{equation.#1}{#1})}
+
+% You can also change the page heading for the nomenclature
+\renewcommand{\nomname}{List of Symbols Used}
+
+% You can even add customization text before the list
+\renewcommand{\nompreamble}{The following symbols will be later used within the body of the thesis.}
+\makenomenclature
+\fi
+
+%
+% The commands below are to configure JSON listings
+% 
+% format for JSON listings
+\colorlet{punct}{red!60!black}
+\definecolor{delim}{RGB}{20,105,176}
+\definecolor{numb}{RGB}{106, 109, 32}
+\definecolor{string}{RGB}{0, 0, 0}
+
+\lstdefinelanguage{json}{
+    numbers=none,
+    numberstyle=\small,
+    frame=none,
+    rulecolor=\color{black},
+    showspaces=false,
+    showtabs=false,
+    breaklines=true,
+    postbreak=\raisebox{0ex}[0ex][0ex]{\ensuremath{\color{gray}\hookrightarrow\space}},
+    breakatwhitespace=true,
+    basicstyle=\ttfamily\small,
+    extendedchars=false,
+    upquote=true,
+    morestring=[b]",
+    stringstyle=\color{string},
+    literate=
+     *{0}{{{\color{numb}0}}}{1}
+      {1}{{{\color{numb}1}}}{1}
+      {2}{{{\color{numb}2}}}{1}
+      {3}{{{\color{numb}3}}}{1}
+      {4}{{{\color{numb}4}}}{1}
+      {5}{{{\color{numb}5}}}{1}
+      {6}{{{\color{numb}6}}}{1}
+      {7}{{{\color{numb}7}}}{1}
+      {8}{{{\color{numb}8}}}{1}
+      {9}{{{\color{numb}9}}}{1}
+      {:}{{{\color{punct}{:}}}}{1}
+      {,}{{{\color{punct}{,}}}}{1}
+      {\{}{{{\color{delim}{\{}}}}{1}
+      {\}}{{{\color{delim}{\}}}}}{1}
+      {[}{{{\color{delim}{[}}}}{1}
+      {]}{{{\color{delim}{]}}}}{1}
+      {’}{{\char13}}1,
+}
+
+\lstdefinelanguage{XML}
+{
+  basicstyle=\ttfamily\color{blue}\bfseries\small,
+  morestring=[b]",
+  morestring=[s]{>}{<},
+  morecomment=[s]{<?}{?>},
+  stringstyle=\color{black},
+  identifierstyle=\color{blue},
+  keywordstyle=\color{cyan},
+  breaklines=true,
+  postbreak=\raisebox{0ex}[0ex][0ex]{\ensuremath{\color{gray}\hookrightarrow\space}},
+  breakatwhitespace=true,
+  morekeywords={xmlns,version,type}% list your attributes here
+}
+
+% If you use both listing and lstlisting environments - the following makes them both use the same counter and the same formatting in the List of Listings
+\makeatletter
+\AtBeginDocument{\let\c@listing\c@lstlisting}
+\AtBeginDocument{\let\l@listing\l@lstlisting}
+\makeatother
+
+% Change the heading for the "List of Listings" to simply "Listings"
+\renewcommand{\lstlistlistingname}{Listings}
+
+% number each listing within the chapter
+\numberwithin{listing}{chapter}
+
+\usepackage{subfiles}
+
+% TikZ for architecture diagrams
+\usepackage{tikz}
+\usetikzlibrary{shapes.geometric, arrows.meta, positioning, calc}
+\usepackage{float}
+% To have Creative Commons (CC) license and logos use the doclicense package
+% Note that the lowercase version of the license has to be used in the modifier
+% i.e., one of by, by-nc, by-nd, by-nc-nd, by-sa, by-nc-sa, zero.
+% For background see:
+% https://www.kb.se/samverkan-och-utveckling/oppen-tillgang-och-bibsamkonsortiet/open-access-and-bibsam-consortium/open-access/creative-commons-faq-for-researchers.html
+% https://kib.ki.se/en/publish-analyse/publish-your-article-open-access/open-licence-your-publication-cc
+\begin{comment}
+\usepackage[
+    type={CC},
+    %modifier={by-nc-nd},
+    %version={4.0},
+    modifier={by-nc},
+    imagemodifier={-eu-88x31},  % to get Euro symbol rather than Dollar sign
+    hyphenation={RaggedRight},
+    version={4.0},
+    %modifier={zero},
+    %version={1.0},
+]{doclicense}
+\end{comment}
+\listfiles
+
+\begin{document}
+%\selectlanguage{swedish}
+%
+\selectlanguage{english}
+
+%%% Set the numbering for the title page to a numbering series not in the preface or body
+% \pagenumbering{alph}
+\kthcover
+% \clearpage\thispagestyle{empty}\mbox{} % empty back of front cover
+\titlepage
+
+% If you do not want to have a bookinfo page, comment out the line saying \bookinfopage and add a \cleardoublepage
+% If you want a bookinfo page: you will get a copyright notice, unless you have used the doclicense package in which case you will get a Creative Commons license. To include the doclicense package, uncomment the configuration of this package above and configure it with your choice of license.
+% \bookinfopage
+
+% % Frontmatter includes the abstracts and table-of-contents
+\frontmatter
+% \setcounter{page}{1}
+% \begin{abstract}
+% % The first abstract should be in the language of the thesis.
+% % Abstract fungerar på svenska också.
+%   \markboth{\abstractname}{}
+% \begin{scontents}[store-env=lang]
+% eng
+% \end{scontents}
+% %%% The contents of the abstract (between the begin and end of scontents) will be saved in LaTeX format
+% %%% and output on the page(s) at the end of the thesis with information for DiVA facilitating the correct
+% %%% entry of the meta data for your thesis.
+% %%% These page(s) will be removed before the thesis is inserted into DiVA.
+% \engExpl{All theses at KTH are \textbf{required} to have an abstract in both \textit{English} and \textit{Swedish}.}
+
+% \engExpl{Exchange students may want to include one or more abstracts in the language(s) used in their home institutions to avoid the need to write another thesis when returning to their home institution.}
+
+% \generalExpl{Keep in mind that most of your potential readers are only going to read your \texttt{title} and \texttt{abstract}. This is why the abstract must give them enough information so that they can decide if this document is relevant to them or not. Otherwise, the likely default choice is to ignore the rest of your document.\\
+% An abstract should stand on its own, \ie no citations, cross-references to the body of the document, acronyms must be spelled out, \ldots .\\Write this early and revise as necessary. This will help keep you focused on what you are trying to do.}
+
+% \begin{scontents}[store-env=abstracts,print-env=true]
+% \generalExpl{Enter your abstract here!}
+% An abstract is (typically) about 250 and 350 words (1/2 A4-page) with the following components:
+% % key parts of the abstract
+% \begin{itemize}
+%   \item What is the topic area? (optional) Introduces the subject area for the project.
+%   \item Short problem statement
+%   \item Why was this problem worth a Bachelor's/Master’s thesis project? (\ie, why is the problem both significant and of a suitable degree of difficulty for a Bachelor's/Master’s thesis project? Why has no one else solved it yet?)
+%   \item How did you solve the problem? What was your method/insight?
+%   \item Results/Conclusions/Consequences/Impact: What are your key results/\linebreak[4]conclusions? What will others do based on your results? What can be done now that you have finished - that could not be done before your thesis project was completed?
+% \end{itemize}
+
+% \end{scontents}
+% \engExpl{The following are some notes about what can be included (in terms of LaTeX) in your abstract.}
+% Choice of typeface with \textbackslash textit, \textbackslash textbf, and \textbackslash texttt:  \textit{x}, \textbf{x}, and \texttt{x}.
+
+% Text superscripts and subscripts with \textbackslash textsubscript and \textbackslash textsuperscript: A\textsubscript{x} and A\textsuperscript{x}.
+
+% Some symbols that you might find useful are available, such as: \textbackslash textregistered, \textbackslash texttrademark, and \textbackslash textcopyright. For example, 
+% the copyright symbol: \textbackslash textcopyright Maguire 2022 results in \textcopyright Maguire 2022. Additionally, here are some examples of text superscripts (which can be combined with some symbols): \textbackslash textsuperscript\{99m\}Tc, A\textbackslash textsuperscript\{*\}, A\textbackslash textsuperscript\{\textbackslash textregistered\}, and A\textbackslash texttrademark resulting in \textsuperscript{99m}Tc, A\textsuperscript{*}, A\textsuperscript{\textregistered}, and A\texttrademark. Two examples of subscripts are: H\textbackslash textsubscript\{2\}O and CO\textbackslash textsubscript\{2\} which produce  H\textsubscript{2}O and CO\textsubscript{2}.
+
+% You can use simple environments with begin and end: itemize and enumerate and within these use instances of \textbackslash item.
+
+% The following commands can be used: \textbackslash eg, \textbackslash Eg, \textbackslash ie, \textbackslash Ie, \textbackslash etc, and \textbackslash etal: \eg, \Eg, \ie, \Ie, \etc, and \etal.
+
+% The following commands for numbering with lowercase Roman numerals: \textbackslash first, \textbackslash Second, \textbackslash third, \textbackslash fourth, \textbackslash fifth, \textbackslash sixth, \textbackslash seventh, and \textbackslash eighth: \first, \Second, \third, \fourth, \fifth, \sixth, \seventh, and \eighth. Note that the second case is set with a capital 'S' to avoid conflicts with the use of second as a unit in the \texttt{siunitx} package.
+
+% Equations using \textbackslash( xxxx \textbackslash) or \textbackslash[ xxxx \textbackslash] can be used in the abstract. For example: \( (C_5O_2H_8)_n \)
+% or \[ \int_{a}^{b} x^2 \,dx \]
+% Note that you \textbf{cannot} use an equation between dollar signs.
+
+
+% Even LaTeX comments can be handled by using a backslash to quote the percent symbol, for example: \% comment.
+% Note that one can include percentages, such as: 51\% or \SI{51}{\percent}.
+
+% \subsection*{Keywords}
+% \begin{scontents}[store-env=keywords,print-env=true]
+% % If you set the EnglishKeywords earlier, you can retrieve them with:
+% \InsertKeywords{english}
+% % If you did not set the EnglishKeywords earlier then simply enter the keywords here:
+% % comma separate keywords, such as: Canvas Learning Management System, Docker containers, Performance tuning
+% \end{scontents}
+% \engExpl{\textbf{Choosing good keywords can help others to locate your paper, thesis, dissertation, \ldots and related work.}}
+% Choose the most specific keyword from those used in your domain, see for example: the ACM Computing Classification System ({\small \url{https://www.acm.org/publications/computing-classification-system/how-to-use})},
+% the IEEE Taxonomy ({\small \url{https://www.ieee.org/publications/services/thesaurus-thank-you.html}}), PhySH (Physics Subject Headings)\linebreak[4] ({\small \url{https://physh.aps.org/}}), \ldots or keyword selection tools such as the  National Library of Medicine's Medical Subject Headings (MeSH)  ({\small \url{https://www.nlm.nih.gov/mesh/authors.html}}) or Google's Keyword Tool ({\small \url{https://keywordtool.io/}})\\
+
+% \textbf{Formatting the keywords}:
+% \begin{itemize}
+%   \item The first letter of a keyword should be set with a capital letter and proper names should be capitalized as usual.
+%   \item Spell out acronyms and abbreviations.
+%   \item Avoid "stop words" - as they generally carry little or no information.
+%   \item List your keywords separated by commas (``,'').
+% \end{itemize}    
+% Since you should have both English and Swedish keywords - you might think of ordering the keywords in corresponding order (\ie, so that the n\textsuperscript{th} word in each list correspond) - this makes it easier to mechanically find matching keywords.
+% \end{abstract}
+% \cleardoublepage
+% \babelpolyLangStart{swedish}
+% \begin{abstract}
+%     \markboth{\abstractname}{}
+% \begin{scontents}[store-env=lang]
+% swe
+% \end{scontents}
+% \warningExpl{Inside the following scontents environment, you cannot use a \textbackslash include{filename} as the command rather than the file contents will end up in the for DiVA information. Additionally, you should not use a straight double quote character in the abstracts or keywords, use two single quote characters instead.}
+% \sweExpl{Alla avhandlingar vid KTH \textbf{måste ha} ett abstrakt på både \textit{engelska} och \textit{svenska}.\\
+% Om du skriver din avhandling på svenska ska detta göras först (och placera det som det första abstraktet) - och du bör revidera det vid behov.}
+
+% \engExpl{If you are writing your thesis in English, you can leave this until the draft version that goes to your opponent for the written opposition. In this way, you can provide the English and Swedish abstract/summary information that can be used in the announcement for your oral presentation.\\If you are writing your thesis in English, then this section can be a summary targeted at a more general reader. However, if you are writing your thesis in Swedish, then the reverse is true – your abstract should be for your target audience, while an English summary can be written targeted at a more general audience.\\This means that the English abstract and Swedish sammnfattning  
+% or Swedish abstract and English summary need not be literal translations of each other.}
+
+% \warningExpl{Do not use the \textbackslash glspl\{\} command in an abstract that is not in English, as my programs do not know how to generate plurals in other languages. Instead, you will need to spell these terms out or give the proper plural form. In fact, it is a good idea not to use the glossary commands at all in an abstract/summary in a language other than the language used in the \texttt{acronyms.tex file} - since the glossary package does \textbf{not} support use of more than one language.}
+
+% \engExpl{The abstract in the language used for the thesis should be the first abstract, while the Summary/Sammanfattning in the other language can follow}
+% \begin{scontents}[store-env=abstracts,print-env=true]
+% \generalExpl{Enter your Swedish abstract or summary here!}
+
+% \end{scontents}
+% \subsection*{Nyckelord}
+% \begin{scontents}[store-env=keywords,print-env=true]
+% % SwedishKeywords were set earlier, hence we can use alternative 2
+% \InsertKeywords{swedish}
+% \end{scontents}
+% \sweExpl{Nyckelord som beskriver innehållet i uppsatsen eller rapporten}
+% \end{abstract}
+% \cleardoublepage
+% \babelpolyLangStop{swedish}
+% % Note that the \cleardoublepage has to be before the 
+% % \babelpolyLangStop - otherwise the running headers will not be in the correct language
+
+
+% \engExpl{If you add the class option \texttt{includeExtraAbstracts} in your \texttt{docuemntclass}, then you can enable abstracts/summaries in a number of languages. Include those versions of abstracts that you need.}
+% \generalExpl{If you are an exchange student, use the relevant language or languages for abstracts for your home university, as this will often avoid the need for writing another thesis for your home university.}
+% \generalExpl{If you are fluent in other languages, feel free to add the abstracts in one or more of them.}
+
+% \engExpl{The set of languages that can be easily included are based on those languages that were used in theses at KTH in the period 2018-2019, along with several others that have been used in theses since.}
+% \warningExpl{Note that you may need to augment the set of languages used in \texttt{polyglossia} or
+% \texttt{babel} (see the file \texttt{kththesis.cls}). If you add a new language, when specifying the language for the abstract, use the three-letter ISO 639-2 Code – specifically the "B" (bibliographic) variant of these codes (note that this is the same language code used in DiVA).}
+
+% \cleardoublepage
+% \iftoggle{includeExtraAbstracts}{
+% % To include abstracts in languages other than English and Swedish:
+% %  1. Ensure 'includeExtraAbstracts' is an active option in \documentclass.
+% %  2. Uncomment the relevant '\input' line(s) below.
+% %  3. Edit the content within the corresponding file in the 'Additional_Abstracts/' folder.
+% % Include only the abstracts that you want and fill them in as appropriate
+% % The template will automatically include the information that you entered
+% %
+% % Languages in frequency order based on DiVA data from 2025-05-28
+
+% % --- Include Spanish abstract ---
+% %\input{Additional_Abstracts/abstract_spanish}
+
+% % --- Include French abstract ---
+% %\input{Additional_Abstracts/abstract_french}
+
+% % --- Include German abstract ---
+% %\input{Additional_Abstracts/abstract_german}
+
+% % --- Include Italian abstract ---
+% %\input{Additional_Abstracts/abstract_italian}
+
+% % --- Include Chinese abstract ---
+% %\input{Additional_Abstracts/abstract_chinese}
+
+% % --- Include Norwegian abstract ---
+% %\input{Additional_Abstracts/abstract_norweign}
+
+% % --- Include Catalan abstract ---
+% %\input{Additional_Abstracts/abstract_catalan}
+
+% % --- Include Finnish abstract ---
+% %\input{Additional_Abstracts/abstract_finnish}
+
+% % --- Include Portuguese abstract ---
+% %\input{Additional_Abstracts/abstract_chinese}
+
+% % --- Include Dutch abstract ---
+% %\input{Additional_Abstracts/abstract_dutch}
+
+% % --- Include Swahili / Kiswahili summary ---
+% %\input{Additional_Abstracts/abstract_swahili}
+
+% % --- Include Russian summary ---
+% %\input{Additional_Abstracts/abstract_russian}
+
+% % --- Include Polish abstract ---
+% %\input{Additional_Abstracts/abstract_polishn}
+
+% % --- Include Ukrainian abstract ---
+% %\input{Additional_Abstracts/abstract_ukrainian}
+
+% % --- Include Hindi abstract ---
+% %\input{Additional_Abstracts/abstract_hindi}
+
+% % --- Include Danish abstract ---
+% %\input{Additional_Abstracts/abstract_danish}
+
+% % --- Include Estonian abstract ---
+% %\input{Additional_Abstracts/abstract_estonian}
+
+% % --- Include Slovak abstract ---
+% %\input{Additional_Abstracts/abstract_slovak}
+
+% % --- Include Serbian abstract ---
+% %\input{Additional_Abstracts/abstract_serbian}
+
+% % --- Include Bosnian abstract ---
+% %\input{Additional_Abstracts/abstract_bosnian}
+
+% %% missing many languages
+
+
+
+% }{} %% End the iiftoggle{includeExtraAbstracts}
+
+% \section*{Acknowledgments}
+% \markboth{Acknowledgments}{}
+% \sweExpl{Författarnas tack}
+
+% \engExpl{It is nice to acknowledge the people that have helped you. It is
+%   also necessary to acknowledge any special permissions that you have gotten –
+%   for example, getting permission from the copyright owner to reproduce a
+%   figure. In this case, you should acknowledge them and this permission here
+%   and in the figure’s caption. \\
+%   Note: If you do \textbf{not} have the copyright owner’s permission, then you \textbf{cannot} use any copyrighted figures/tables/\ldots . Unless stated otherwise all figures/tables/\ldots are generally copyrighted.
+% }
+% \sweExpl{I detta kapitel kan du ev nämna något om
+%   din bakgrund om det påverkar rapporten på något sätt. Har du t ex inte
+%   möjlighet att skriva perfekt svenska för att du är nyanländ till landet kan
+%   det vara på sin plats att nämna detta här. OBS, detta får dock inte vara en
+%   ursäkt för att lämna in en rapport med undermåligt språk, undermålig grammatik och
+%   stavning (t ex får fel som en automatisk stavningskontroll och
+%   grammatikkontroll kan upptäcka inte förekomma)\\
+% En dualism som måste hanteras i hela rapporten och projektet
+% }
+
+% \engExpl{To ensure academic transparency, you must report whether and how generative AI has been used in your examinable work.  This includes any new content, including, but not limited text, images, tables, or code.}
+% \sweExpl{För att säkerställa akademisk transparens måste du rapportera om och hur generativ AI har använts i ditt examinerbara arbete. Detta inkluderar allt nytt innehåll, inklusive, men inte begränsat till, text, bilder, tabeller eller kod.}
+
+% I would like to thank xxxx for having yyyy. Or in the case of two authors:\\
+% We would like to thank xxxx for having yyyy.
+
+% \acknowlegmentssignature
+
+\fancypagestyle{plain}{}
+\renewcommand{\chaptermark}[1]{ \markboth{#1}{}} 
+\tableofcontents
+  \markboth{\contentsname}{}
+
+% \cleardoublepage
+% \listoffigures
+
+% \cleardoublepage
+
+% \listoftables
+% \cleardoublepage
+% \lstlistoflistings\engExpl{If you have listings in your thesis. If not, then remove this preface page.}
+% \cleardoublepage
+% Align the text expansion of the glossary entries
+\newglossarystyle{mylong}{%
+  \setglossarystyle{long}%
+  \renewenvironment{theglossary}%
+     {\begin{longtable}[l]{@{}p{\dimexpr 2cm-\tabcolsep}p{0.8\hsize}}}% <-- change the value here
+     {\end{longtable}}%
+ }
+%\glsaddall
+%\printglossaries[type=\acronymtype, title={List of acronyms}]
+\printglossary[style=mylong, type=\acronymtype, title={List of acronyms and abbreviations}]
+%\printglossary[type=\acronymtype, title={List of acronyms and abbreviations}]
+
+%\printnoidxglossary[style=mylong, title={List of acronyms and abbreviations}]
+% \engExpl{The list of acronyms and abbreviations should be in alphabetical order based on the spelling of the acronym or abbreviation.
+% }
+
+% if the nomenclature option was specified, then include the nomenclature page(s)
+\ifnomenclature
+    \cleardoublepage
+    % Output the nomenclature list
+    \printnomenclature
+\fi
+
+%% The following label is essential to know the page number of the last page of the preface
+%% It is used to compute the data for the "For DIVA" pages
+\label{pg:lastPageofPreface}
+% Mainmatter is where the actual contents of the thesis goes
+\mainmatter
+\glsresetall
+\renewcommand{\chaptermark}[1]{\markboth{#1}{}}
+\selectlanguage{english}
+\chapter{Introduction}
+\label{ch:introduction}
+
+As \glspl{LLM} are deployed with increasingly long context windows, the memory required to maintain the \gls{KV} cache during inference has become a dominant system bottleneck. The following sections describe this bottleneck in the context of consumer-grade hardware, formulate the specific problem addressed by this project, and outline the goals and methodology of the proposed profiling study.
+
+\section{Context}
+\label{sec:Context}
+\glspl{LLM} are rapidly evolving beyond single-turn conversational interfaces into autonomous agents that perform complex, multi-step reasoning over extended interactions. Applications such as repository-level software engineering~\cite{jimenez2024swebench}, multi-document question answering~\cite{liu2024lost}, and long-horizon planning~\cite{wang2023voyager} require models to maintain coherent context windows spanning tens or even hundreds of thousands of tokens. This shift from short prompts to persistent, large-scale contexts fundamentally changes the resource profile of inference workloads.
+
+To avoid redundant computation during autoregressive generation, serving systems store the intermediate attention states of all previously processed tokens in the \gls{KV} cache. A new key--value entry is appended for every token at every layer, so the memory footprint grows linearly with context length. For models whose context windows reach 128\,000 tokens or more~\cite{dubey2024llama3, reid2024gemini}, the \gls{KV} cache can exceed tens of gigabytes and dominate the overall memory budget.
+
+While datacenter-class accelerators partially accommodate this growth through large on-device memories, consumer-grade \glspl{GPU} face a fundamentally harder constraint. In this thesis, ``consumer-grade'' refers to desktop or laptop graphics cards marketed to individual users rather than datacenter operators, typically featuring 8--16\,GB of GDDR memory (e.g., the NVIDIA RTX~4060 or RTX~5060). This hardware class warrants dedicated study for three reasons. First, consumer \glspl{GPU} constitute the vast majority of discrete \glspl{GPU} shipped worldwide, making them the most widely available platform for local \gls{LLM} inference. Second, privacy-sensitive applications, such as on-device document analysis and local coding assistants, require inference to remain on personal hardware without relying on cloud endpoints. Third, the cost gap between consumer and datacenter accelerators (roughly an order of magnitude) means that optimization insights applicable to 8\,GB devices have a disproportionately large potential user base. On such hardware, model weights already consume a substantial share of the available capacity, leaving only a narrow margin for the \gls{KV} cache and imposing a strict upper bound on the achievable context length. Understanding the performance cost structure of inference within this limited memory budget is therefore a prerequisite for enabling practical long-context deployment on commodity devices.
+
+\section{Problem}
+\label{sec:problem}
+The fundamental problem is the mismatch between the limited physical memory of consumer hardware and the growing memory demands of long-context inference.
+
+\subsection{Original problem and definition}
+\label{sec:researchQuestion}
+
+Consumer-grade \glspl{GPU} typically have highly constrained memory. During generative tasks, model weights occupy a static partition while the \gls{KV} cache grows continuously, quickly exhausting the remaining \gls{GPU} memory. This leads either to \gls{OOM} errors that terminate inference or to sequence truncation that degrades output quality.
+
+\subsection{Scientific and engineering issues}
+Current \gls{LLM} serving systems mitigate \gls{OOM} errors via hardware-level memory swapping between the \gls{GPU} and \gls{CPU}. This \gls{PCIe}-bottlenecked mechanism incurs substantial I/O latency. On consumer-grade hardware with strict memory constraints, such as an 8\,GB \gls{GPU}, offloading even a modest fraction of the \gls{KV} cache to \gls{CPU} memory introduces per-step latency that can dominate generation time~\cite{sheng2023flexgen, lee2024infinigen}. Understanding the magnitude of this overhead is essential for determining whether offloading is viable or whether the \gls{KV} cache must be managed entirely within \gls{GPU}-local memory (i.e., the on-device global memory physically attached to the \gls{GPU}, excluding any host-side or unified memory accessible via PCIe)~\cite{pope2023efficiently}. However, quantitative system-level profiling data for these trade-offs on consumer hardware is largely absent from the literature. The core scientific and engineering question is therefore: \textit{what are the dominant performance bottlenecks of long-context \gls{LLM} inference on memory-constrained consumer \glspl{GPU}, and how does \gls{KV} cache offloading overhead scale with context length and offloading ratio?}
+
+
+\section{Purpose}
+\label{sec:purpose}
+The purpose of this project is to answer the research question posed in Section~\ref{sec:researchQuestion} by producing per-stage latency breakdowns, \gls{GPU} utilization profiles, and \gls{KV} cache offloading overhead measurements for long-context \gls{LLM} inference on an 8\,GB consumer \gls{GPU}. As surveyed in Section~\ref{sec:bg-related-work}, system-level profiling data for these trade-offs on consumer hardware is absent from the literature. This project fills that gap by characterizing the cost structure of inference under varying context lengths, models, and offloading configurations. The resulting baselines ground future \gls{KV} cache optimization research and offer practical guidance for deploying \glspl{LLM} on resource-constrained devices.
+
+\section{Goals}
+\label{sec:goals}
+The primary goal of this degree project is to produce a comprehensive, quantitative characterization of long-context \gls{LLM} inference on a memory-constrained consumer \gls{GPU}. This objective is divided into three sub-goals:
+
+\begin{enumerate}
+\item \textbf{System-level profiling.} Profile the end-to-end inference pipeline of llama.cpp on an 8\,GB consumer \gls{GPU} (NVIDIA RTX~5060) using NVIDIA Nsight Compute and Nsight Systems. Produce a fine-grained breakdown of time overhead across major inference stages (prompt encoding, attention computation, feed-forward computation, sampling). Analyze \gls{GPU} resource utilization including \gls{SM} occupancy, cache locality, and instruction pipeline efficiency.
+\item \textbf{KV cache offloading characterization.} Measure the overhead of \gls{KV} cache offloading between \gls{GPU} and \gls{CPU} memory under varying configurations: different models (LLaMA~3.1 8B, Gemma~2 9B, Qwen~2.5 7B, and Phi-3 Mini 3.8B), different context lengths, and different offloading ratios. These measurements establish empirical baselines for evaluating future \gls{KV} cache compression techniques.
+\item \textbf{Bottleneck analysis.} Synthesize the profiling and offloading measurements to identify the dominant performance bottlenecks for long-context inference on consumer hardware.
+\end{enumerate}
+
+\section{Contributions}
+\label{sec:contributions}
+The contributions of this project correspond directly to the three goals stated above:
+
+\begin{enumerate}
+\item The first fine-grained latency breakdown of the llama.cpp inference pipeline on a consumer-grade 8\,GB \gls{GPU} using NVIDIA Nsight tools.
+\item Empirical measurements of \gls{KV} cache offloading overhead across four open-weight models, varying context lengths, and offloading ratios.
+\item A bottleneck analysis synthesizing the profiling data to identify the primary performance limiters for \gls{KV} cache management on consumer hardware.
+\end{enumerate}
+
+\section{Research Methodology}
+\label{sec:methodology}
+This project applies a quantitative experimental methodology. Empirical profiling on real hardware is the standard approach for understanding system-level performance in Machine Learning Systems, as analytical modeling alone cannot capture the complexities of memory hierarchy behavior and I/O latency during \gls{GPU} execution.
+
+\textbf{Experimental platform and control variables.} All experiments run on unmodified llama.cpp~\cite{llamacpp2025} on a single NVIDIA RTX~5060 (8\,GB GDDR7). The following variables are held constant: weight quantization format (Q4\_K\_M), \gls{KV} cache precision (\gls{FP16}), and input prompts from the LongBench benchmark suite~\cite{bai2024longbench}. Four models are evaluated: LLaMA~3.1 8B, Gemma~2 9B, Qwen~2.5 7B, and Phi-3 Mini 3.8B.
+
+\textbf{Profiling tools.} NVIDIA Nsight Systems is used for timeline-level tracing of kernel launches, memory transfers, and \gls{CPU}--\gls{GPU} synchronization. NVIDIA Nsight Compute is used for kernel-level analysis of \gls{SM} occupancy, cache hit rates, memory throughput, and instruction pipeline utilization.
+
+\textbf{Evaluation dimensions.} The evaluation quantifies: (1)~per-stage latency breakdown across the inference pipeline (prompt encoding, attention, feed-forward, sampling), (2)~\gls{GPU} resource utilization (\gls{SM} occupancy, cache locality, instruction pipeline efficiency), (3)~\gls{KV} cache offloading overhead as a function of offloading ratio and context length, (4)~maximum achievable context length before \gls{OOM} under different configurations, and (5)~end-to-end throughput in tokens per second.
+
+\textbf{Research phases.} The research consists of three phases. First, \textit{inference pipeline profiling}: decomposing the latency of each inference step using Nsight tools and identifying the dominant bottlenecks across all four models. Second, \textit{offloading characterization}: systematically varying the \gls{KV} cache offloading ratio and context length to measure the throughput and latency impact of \gls{CPU}--\gls{GPU} data transfer. Third, \textit{bottleneck synthesis}: analyzing the collected data to identify the primary performance limiters for \gls{KV} cache management on consumer hardware.
+
+\textbf{Statistical methodology.} Each experimental configuration is executed a minimum of five times after an initial warm-up run to ensure stable thermal and caching conditions. Results are reported as the median with \gls{IQR}, as median is more robust to outlier noise from OS scheduling and background processes than the arithmetic mean. To mitigate thermal throttling on the target laptop \gls{GPU}, experiments are separated by a 60-second cool-down interval and the \gls{GPU} clock and temperature are logged throughout each run. Runs exhibiting clock frequency drops below 90\% of the boost clock are discarded and repeated. All raw profiling data and analysis scripts will be provided for reproducibility.
+
+
+\section{Delimitations}
+\label{sec:delimitations}
+This project evaluates Transformer-based \glspl{LLM} with explicit attention mechanisms only. Alternative non-attention sequence models are excluded.
+
+The hardware scope is restricted to a single consumer \gls{GPU} (NVIDIA RTX~5060, 8\,GB). Multi-\gls{GPU} distributed inference is outside the scope. \gls{CPU}--\gls{GPU} \gls{KV} cache offloading is included as a measured variable, not as a proposed optimization.
+
+This project is a profiling and analysis study. It does not implement new \gls{KV} cache eviction or compression algorithms; such mechanisms are identified as future work. The project does not involve model retraining, fine-tuning, or weight updates.
+
+
+\section{Structure of the thesis}
+\label{sec:structure}
+The remainder of this thesis is structured as follows. 
+
+Chapter~\ref{ch:background} presents the theoretical background of \gls{LLM} inference, the attention mechanism, and \gls{GPU} memory architecture. It also reviews related work in \gls{KV} cache optimization and identifies the profiling gap that motivates this project.
+
+\chapter{Background}
+\label{ch:background}
+
+
+This chapter provides the theoretical foundations and engineering context for profiling long-context \gls{LLM} inference on consumer-grade \glspl{GPU}. Section~\ref{sec:bg-llm} introduces the architecture and inference process of \glspl{LLM}. Section~\ref{sec:bg-attention-kv} details the attention mechanism and the origin of the \gls{KV} cache. Section~\ref{sec:bg-gpu-memory} describes \gls{GPU} memory architecture and the specific bottlenecks during inference. Section~\ref{sec:bg-cache-management} reviews how modern serving systems manage \gls{KV} cache memory, including llama.cpp's cell-based cache manager (Section~\ref{sec:bg-llamacpp-kv}). Section~\ref{sec:bg-related-work} surveys related work on \gls{KV} cache optimization. Section~\ref{sec:bg-summary} concludes with a comparative summary.
+
+%% ============================================================
+%% 2.1 Large Language Models and Autoregressive Inference
+%% ============================================================
+\section{Large Language Models and Autoregressive Inference}
+\label{sec:bg-llm}
+
+This section describes the core architecture and inference procedure of modern \glspl{LLM}. Understanding the sequential generation process is essential because the \gls{KV} cache arises directly from it.
+
+\subsection{The Transformer Architecture}
+\label{sec:bg-transformer}
+
+The Transformer architecture, introduced by Vaswani et al.~\cite{vaswani2017attention}, replaced recurrence and convolution with a purely attention-based mechanism for sequence modeling. The original design follows an encoder-decoder structure for machine translation. Subsequent language models adopted a decoder-only variant, which processes tokens autoregressively through a causal mask. This variant forms the basis of the GPT family~\cite{radford2019language, brown2020language} and the LLaMA family~\cite{touvron2023llama, dubey2024llama3}. Since this project targets LLaMA~3.1~\cite{dubey2024llama3}, the following description reflects its specific architectural choices.
+
+A decoder-only Transformer consists of $n_{\text{layers}}$ identical stacked blocks. Each block contains two sub-layers: a multi-head self-attention layer and a position-wise \gls{FFN}. A residual connection wraps each sub-layer. LLaMA applies normalization \textit{before} each sub-layer (Pre-Norm)~\cite{touvron2023llama, dubey2024llama3}, a design choice shown to improve training stability at scale~\cite{xiong2020layer}, rather than after it, as in the original Transformer. LLaMA further replaces the standard LayerNorm~\cite{ba2016layer} with \gls{RMSNorm}~\cite{zhang2019root} for computational efficiency. Given an input representation $\mathbf{x}$, the computation within one block proceeds as:
+
+\begin{equation}
+\label{eq:transformer-block}
+\mathbf{h} = \mathbf{x} + \text{MultiHeadAttn}(\text{RMSNorm}(\mathbf{x})), \quad \mathbf{y} = \mathbf{h} + \text{FFN}(\text{RMSNorm}(\mathbf{h}))
+\end{equation}
+
+For the \gls{FFN} sub-layer, LLaMA adopts the \gls{SwiGLU} variant~\cite{shazeer2020glu}, which introduces a gated linear unit with three weight matrices and no bias terms. Denoting the sub-layer input as $\mathbf{z}$ (i.e., $\mathbf{z} = \text{RMSNorm}(\mathbf{h})$ in Equation~\ref{eq:transformer-block}):
+
+\begin{equation}
+\label{eq:ffn-swiglu}
+\text{FFN}_{\text{SwiGLU}}(\mathbf{z}) = \bigl(\text{SiLU}(\mathbf{z}\,W_{\text{gate}}) \odot \mathbf{z}\,W_{\text{up}}\bigr)\,W_{\text{down}}
+\end{equation}
+
+\noindent where $\odot$ denotes element-wise multiplication. One branch passes through the SiLU activation~\cite{elfwing2018sigmoid} as a gating signal; the other provides a linear projection. Their element-wise product is then projected back to the model dimension by $W_{\text{down}}$.
+
+Figure~\ref{fig:transformer-block} illustrates the structure of a single LLaMA Transformer block. While these architectural refinements improve training stability and computational efficiency, the dominant memory challenge during inference is not the static model weights but the KV cache. Its footprint grows dynamically with every generated token. Section~\ref{sec:bg-kv-cache} explains this mechanism in detail.
+
+
+\begin{figure}[H]
+  \begin{center}
+    \input{figures/transformer_block.tex}
+  \end{center}
+  \caption{Architecture of a single LLaMA Transformer block. Each block applies \gls{RMSNorm} before the multi-head self-attention and \gls{SwiGLU} \gls{FFN} sub-layers, with residual connections bypassing each sub-layer.}
+  \label{fig:transformer-block}
+\end{figure}
+
+\subsection{Autoregressive Inference: Prefill and Decode}
+\label{sec:bg-autoregressive}
+
+Autoregressive inference generates tokens one at a time. At each step $t$, the model computes a probability distribution over the vocabulary conditioned on all preceding tokens $x_1, x_2, \ldots, x_{t-1}$:
+
+\begin{equation}
+\label{eq:autoregressive}
+P(x_t \mid x_1, \ldots, x_{t-1}) = \text{softmax}(\mathbf{W}_{\text{vocab}} \cdot \mathbf{h}_t)
+\end{equation}
+
+\noindent where $\mathbf{h}_t \in \mathbb{R}^{d_{\text{model}}}$ is the hidden state at position $t$ from the final Transformer block, and $\mathbf{W}_{\text{vocab}} \in \mathbb{R}^{|\mathcal{V}| \times d_{\text{model}}}$ is the vocabulary projection matrix that maps the hidden state to logits over the vocabulary $\mathcal{V}$.
+
+This process divides into two distinct phases:
+
+\textbf{Prefill phase.} The system processes the entire input prompt in a single forward pass. All prompt token representations are computed in parallel through matrix--matrix multiplications. Since the ratio of compute operations to memory accesses is high, this phase is compute-bound. It fully utilizes \gls{GPU} tensor cores and produces the \gls{KV} cache entries for every prompt token across all layers.
+
+\textbf{Decode phase.} After prefill, the system generates output tokens sequentially. Each decode step produces a single new token whose query vector attends over the full \gls{KV} cache accumulated from all prior tokens. The attention computation reduces to a matrix--vector multiplication: one query row against the entire key matrix. Arithmetic intensity drops by orders of magnitude because the system must stream the full \gls{KV} cache from global memory to compute a single output vector. The decode phase is therefore memory-bound~\cite{pope2023efficiently}: throughput is limited by memory bandwidth, not compute capacity.
+
+\begin{figure}[H]
+  \begin{center}
+    \input{figures/prefill_decode.tex}
+  \end{center}
+  \caption{Two-phase autoregressive inference. The prefill phase processes the entire prompt in parallel and is compute-bound. The decode phase generates tokens sequentially and is memory-bound due to repeated \gls{KV} cache reads.}
+  \label{fig:prefill-decode}
+\end{figure}
+
+Figure~\ref{fig:prefill-decode} summarizes the two phases. Because decode is memory-bound, generation throughput depends primarily on how fast the system can stream \gls{KV} cache data from global memory. As the sequence grows, the cache expands linearly, consuming an increasing share of both bandwidth and physical capacity.
+
+\subsection{Context Length and Scaling Challenges}
+\label{sec:bg-context-scaling}
+
+The maximum context window of \glspl{LLM} has expanded significantly. GPT-2 supports 1\,024 tokens~\cite{radford2019language}. GPT-3 extends this to 2\,048~\cite{brown2020language}. LLaMA~3.1 supports 128\,000 tokens natively~\cite{dubey2024llama3}. Models such as Gemini report context windows exceeding one million tokens~\cite{reid2024gemini}.
+
+This expansion is driven by practical demand. Agentic applications such as repository-level software engineering~\cite{jimenez2024swebench}, multi-document question answering~\cite{liu2024lost}, and long-horizon planning~\cite{wang2023voyager} require coherence over tens of thousands of tokens. When the input exceeds the system's effective context capacity, sequence truncation forces the model to lose access to earlier instructions or document content, degrading output quality.
+
+However, the memory cost of supporting long contexts scales linearly with sequence length. Consider LLaMA~3.1 8B as a concrete example: with 32 layers, 8 \gls{KV} heads (\gls{GQA}), a head dimension of 128, and \gls{FP16} storage, each token requires
+%
+\begin{equation}
+\label{eq:kv-per-token}
+2 \times 32 \times 8 \times 128 \times 2 = 131{,}072 \;\text{bytes} \approx 128\;\text{KB}
+\end{equation}
+%
+\noindent of \gls{KV} cache, where the first factor of~2 accounts for both keys and values, and the trailing factor of~2 reflects the two bytes per \gls{FP16} element. At this rate, a context of 8\,192 tokens consumes approximately 1\,GB, while the full 128\,000-token context window requires over 16\,GB (detailed in Table~\ref{tab:kv-cache-size}).
+
+To put this in perspective, consider deployment on an NVIDIA RTX~5060 with 8\,GB of GDDR7. The LLaMA~3.1 8B model weights alone occupy 16\,GB under \gls{FP16}, so the model must first be compressed to 4-bit precision. Under the Q4\_K\_M quantization format, the weight footprint drops to approximately 4.9\,GB. After accounting for framework overhead and runtime buffers (Table~\ref{tab:memory-budget}), roughly 2\,GB remains for the \gls{KV} cache. This accommodates only about 16,000 tokens, approximately 13\% of the model's native 128,000-token context window. The growing demand for long-context capability on fixed-budget commodity hardware motivates the \gls{KV} cache compression techniques central to this thesis.
+
+
+%% ============================================================
+%% 2.2 The Attention Mechanism and KV Cache
+%% ============================================================
+\section{The Attention Mechanism and KV Cache}
+\label{sec:bg-attention-kv}
+
+This section explains the mathematical formulation of attention and the mechanism that produces the \gls{KV} cache. The attention score distributions discussed here also motivate the heuristic eviction strategies surveyed in Section~\ref{sec:bg-eviction} and provide context for interpreting the per-head profiling results in this project.
+
+\subsection{Scaled Dot-Product Attention}
+\label{sec:bg-sdpa}
+
+Scaled dot-product attention computes a weighted sum of value vectors, where the weights reflect the relevance between query and key vectors. Given a query matrix $Q \in \mathbb{R}^{L_q \times d_k}$, a key matrix $K \in \mathbb{R}^{L_k \times d_k}$, and a value matrix $V \in \mathbb{R}^{L_k \times d_v}$, the attention output is:
+
+\begin{equation}
+\label{eq:sdpa}
+\text{Attention}(Q, K, V) = \text{softmax}\!\left(\frac{QK^\top}{\sqrt{d_k}}\right) V
+\end{equation}
+
+The term $QK^\top \in \mathbb{R}^{L_q \times L_k}$ produces raw attention logits. Each entry $(i, j)$ measures the affinity between query token $i$ and key token $j$. The scaling factor $\sqrt{d_k}$ prevents the dot products from growing too large in magnitude, which would push softmax into saturation regions with near-zero gradients~\cite{vaswani2017attention}.
+
+After softmax normalization, the resulting attention weight matrix $A \in \mathbb{R}^{L_q \times L_k}$ satisfies $\sum_{j} A_{ij} = 1$ for each query position $i$. Each row of $A$ defines a probability distribution over the key positions. The output is then a weighted combination of value vectors according to this distribution.
+
+In decoder-only models, a causal mask enforces autoregressive ordering. Position $i$ can only attend to positions $j \leq i$. The mask sets $A_{ij} = 0$ for all $j > i$ by assigning $-\infty$ to the corresponding logits before softmax.
+
+In decoder-only self-attention, all three matrices are derived from the same input. Let $X \in \mathbb{R}^{L \times d_{\text{model}}}$ denote the input hidden states to the attention sub-layer. The matrices $Q$, $K$, and $V$ are obtained through learned linear projections:
+
+\begin{equation}
+\label{eq:qkv-projection}
+Q = X W_Q, \quad K = X W_K, \quad V = X W_V
+\end{equation}
+
+\noindent where $W_Q \in \mathbb{R}^{d_{\text{model}} \times d_k}$, $W_K \in \mathbb{R}^{d_{\text{model}} \times d_k}$, and $W_V \in \mathbb{R}^{d_{\text{model}} \times d_v}$ are parameter matrices. Since $Q$, $K$, and $V$ share the same source, $L_q = L_k = L$ during prefill. During decoding, only the current token is projected to form a single query ($L_q = 1$), while $K$ and $V$ are retrieved from previously stored states ($L_k = t$, the total number of tokens processed so far). Section~\ref{sec:bg-kv-cache} discusses the storage and management of these cached key--value pairs.
+
+\subsection{Multi-Head Attention}
+\label{sec:bg-mha}
+
+\textbf{\gls{MHA}} runs multiple attention functions in parallel, each with independent projections. This enables different heads to capture different types of relationships (syntactic structure, coreference, positional proximity) simultaneously~\cite{vaswani2017attention}.
+
+Given an input $X \in \mathbb{R}^{L \times d_{\text{model}}}$ and $n_h$ attention heads, MHA computes:
+
+\begin{equation}
+\label{eq:mha}
+\text{MultiHead}(X) = \text{Concat}(\text{head}_1, \ldots, \text{head}_{n_h})\, W_O
+\end{equation}
+
+\noindent where each head operates on its own learned projections of the shared input:
+
+\begin{equation}
+\label{eq:mha-head}
+\text{head}_i = \text{Attention}\!\left(X W_Q^{(i)},\; X W_K^{(i)},\; X W_V^{(i)}\right)
+\end{equation}
+
+\noindent with per-head projection matrices $W_Q^{(i)}, W_K^{(i)} \in \mathbb{R}^{d_{\text{model}} \times d_k}$ and $W_V^{(i)} \in \mathbb{R}^{d_{\text{model}} \times d_v}$, where $d_k = d_v = d_{\text{model}} / n_h$. The output projection $W_O \in \mathbb{R}^{n_h d_v \times d_{\text{model}}}$ maps the concatenated head outputs back to the model dimension. In the MQA and GQA variants discussed below, only the key--value heads are shared; the number of query heads $n_h$ and the structure of $W_O$ remain unchanged. Other variants such as Multi-Head Latent Attention~\cite{deepseekv2} also modify the output projection, but fall outside the architectures evaluated here.
+
+In standard MHA, each head maintains its own set of key and value projections. This means the \gls{KV} cache stores $n_h$ independent key--value pairs per layer. Two important variants reduce this cost:
+
+\textbf{\gls{MQA}}, proposed by Shazeer~\cite{shazeer2019fast}, shares a single key--value head across all query heads. This reduces the number of cached key--value pairs from $n_h$ to~1, shrinking the \gls{KV} cache to $1/n_h$ of its original size at a small accuracy cost.
+
+\textbf{Grouped-Query Attention (GQA)}, introduced by Ainslie et al.~\cite{ainslie2023gqa}, is an interpolation between MHA and MQA. It partitions the $n_h$ query heads into $n_{\text{kv}}$ groups, each sharing one key--value head. The \gls{KV} cache size relative to standard MHA is reduced by a factor of:
+
+\begin{equation}
+\label{eq:gqa-ratio}
+r_{\text{GQA}} = \frac{n_{\text{kv}}}{n_h}
+\end{equation}
+
+\noindent MHA corresponds to $n_{\text{kv}} = n_h$ ($r = 1$, no reduction), while MQA corresponds to $n_{\text{kv}} = 1$ ($r = 1/n_h$, maximum reduction). LLaMA~3.1 8B adopts GQA with $n_h = 32$ query heads and $n_{\text{kv}} = 8$ \gls{KV} heads, yielding $r_{\text{GQA}} = 1/4$~\cite{dubey2024llama3}. This means the \gls{KV} cache is one quarter of what standard MHA would require, as already reflected in the per-token estimate of Equation~\ref{eq:kv-per-token}. Figure~\ref{fig:mha-gqa-mqa} compares the three attention variants.
+
+
+\begin{figure}[H]
+  \centering
+  \resizebox{\textwidth}{!}{\input{figures/mha_gqa_mqa.tex}}
+  \caption{Comparison of MHA, GQA, and MQA. MHA maintains independent key--value heads per query head. GQA groups $n_h$ query heads into $n_{\text{kv}}$ groups sharing one key--value head. MQA is the extreme case with $n_{\text{kv}}=1$. LLaMA~3.1 8B uses GQA ($n_h=32$, $n_{\text{kv}}=8$), reducing the \gls{KV} cache to $1/4$ of standard MHA.}
+  \label{fig:mha-gqa-mqa}
+\end{figure}
+
+\subsection{The Key-Value Cache Mechanism}
+\label{sec:bg-kv-cache}
+
+During the decode phase, the model generates one token per step. At step $t$, the new token's query vector must attend over all $t$ preceding key vectors and retrieve information from $t$ value vectors. Without caching, the system would recompute the key and value projections for all previous tokens at every step. Since each projection involves a matrix multiplication of shape $(t \times d_{\text{model}}) \times (d_{\text{model}} \times d_k)$, this incurs $O(t \cdot d_{\text{model}} \cdot d_k)$ redundant computation per head per layer per step.
+
+The \gls{KV} cache eliminates this redundancy. At each decode step, only the new token's key and value vectors are computed and appended to the cache. The attention operation then reads the full cache to produce the output. This reduces per-step projection cost from $O(t \cdot d_{\text{model}} \cdot d_k)$ to $O(d_{\text{model}} \cdot d_k)$ per head, at the cost of storing all historical key--value states in memory.
+
+The total \gls{KV} cache memory for a sequence of length $L$ is:
+
+\begin{equation}
+\label{eq:kv-memory}
+M_{\text{KV}} = 2 \times n_{\text{layers}} \times n_{\text{kv}} \times d_{\text{head}} \times L \times b
+\end{equation}
+
+\noindent where $n_{\text{layers}}$ is the number of Transformer blocks, $n_{\text{kv}}$ is the number of \gls{KV} heads, $d_{\text{head}}$ is the per-head dimension, $L$ is the sequence length, and $b$ is the byte width of the storage format (e.g., $b=2$ for \gls{FP16}). The factor of~2 accounts for storing both keys and values.
+
+Table~\ref{tab:kv-cache-size} illustrates the \gls{KV} cache sizes for LLaMA~3.1 8B under different sequence lengths. Substituting the model parameters into Equation~\ref{eq:kv-memory} yields a per-token cost of approximately 128\,KB, as derived in Equation~\ref{eq:kv-per-token}.
+
+\begin{table}[!ht]
+  \centering
+  \caption{\gls{KV} cache memory for LLaMA~3.1 8B (GQA, \gls{FP16}) at varying context lengths.}
+  \label{tab:kv-cache-size}
+\begin{tabular}{@{} r S[table-format=2.2] r @{}}
+    \toprule
+    \textbf{Sequence Length} & {\textbf{KV Cache (GB)}}   & \textbf{Fraction of 8\,GB GDDR7} \\
+    \midrule
+    2\,048   & 0.25  & 3.1\%   \\
+    8\,192   & 1.00  & 12.5\%  \\
+    32\,768  & 4.00  & 50.0\%  \\
+    65\,536  & 8.00  & 100.0\% \\
+    131\,072 & 16.00 & 200.0\% \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+As shown in Table~\ref{tab:kv-cache-size}, the \gls{KV} cache alone reaches the full 8\,GB GDDR7 capacity at 65\,536 tokens. In practice, model weights and runtime buffers consume a substantial portion of global memory before any cache is allocated, reducing the usable context length further. 
+
+\subsection{Attention Score Distribution and Token Importance}
+\label{sec:bg-attention-distribution}
+
+Empirical studies of attention weight distributions reveal three interrelated patterns that motivate heuristic eviction.
+
+\textbf{Attention sinks.} Xiao et al.~\cite{xiao2024efficient} observe that the first few tokens consistently receive disproportionately high attention scores, regardless of their semantic content. This arises from a structural property of softmax: because the output distribution must sum to one, the model cannot express ``attend to nothing.'' Instead, it deposits residual probability mass onto fixed positional anchors, typically the initial tokens. Evicting these sink tokens causes significant output degradation, so any eviction strategy must preserve them unconditionally.
+
+\textbf{Heavy-hitter concentration.} Zhang et al.~\cite{zhang2024h2o} show that a small subset of tokens referred to as heavy hitters accumulates the majority of total attention weight. In their experiments on OPT and LLaMA models across tasks such as COPA, OpenBookQA, and PiQA, a small fraction of tokens accounts for the vast majority of cumulative attention mass, with the effect most pronounced in the deeper layers of the network. However, the degree of concentration varies across the model: shallow layers exhibit more diffuse attention patterns, and individual heads within the same layer can differ significantly~\cite{ge2024model}. This observation should therefore be understood as an aggregate tendency rather than a universal invariant.
+
+\textbf{Local recency bias.} Recent tokens tend to receive higher attention scores than distant ones, consistent with linguistic locality~\cite{liu2024scissorhands}. Sliding-window attention exploits this bias by retaining only the most recent tokens~\cite{xiao2024efficient}.
+
+\textbf{Interactions and eviction design.} These patterns overlap: attention sinks are a positional special case of heavy hitters, and recent tokens may also qualify as heavy hitters through semantic relevance. Any practical eviction policy must account for these interactions to avoid double-counting tokens and wasting the eviction budget. Understanding these patterns is also relevant to profiling: attention distributions that are highly concentrated imply that a small fraction of cached tokens dominate memory bandwidth consumption during decoding. The concrete algorithmic designs that exploit these patterns, exemplified by H\textsubscript{2}O~\cite{zhang2024h2o}, are surveyed in Section~\ref{sec:bg-eviction}.
+
+%% ============================================================
+%% 2.3 GPU Memory Architecture and Inference Bottlenecks
+%% ============================================================
+\section{GPU Memory Architecture and Inference Bottlenecks}
+\label{sec:bg-gpu-memory}
+
+This section describes the hardware constraints that make \gls{KV} cache management a critical system-level challenge. The memory hierarchy of modern \glspl{GPU} and the data transfer bottlenecks between devices determine the feasible optimization strategies.
+
+
+\subsection{GPU Memory Hierarchy}
+\label{sec:bg-gpu-hierarchy}
+
+Modern \glspl{GPU} employ a multi-level memory hierarchy with strict capacity-bandwidth trade-offs. Table~\ref{tab:gpu-memory-hierarchy} summarizes the key specifications of the NVIDIA RTX~5060, the target hardware of this project~\cite{nvidia2025rtx50series}.
+
+\begin{table}[!ht]
+  \centering
+  \caption{NVIDIA RTX~5060 specifications relevant to \gls{LLM} inference~\cite{nvidia2025rtx50series}}
+  \label{tab:gpu-memory-hierarchy}
+  \begin{tabular}{l r}
+    \toprule
+    \textbf{Parameter} & \textbf{Value} \\
+    \midrule
+    Architecture           & Blackwell \\
+    \gls{CUDA} Cores             & 3\,840 \\
+    Tensor Cores           & 5th Generation \\
+    AI Performance         & 614\,TOPS \\
+    Boost Clock            & 2.50\,GHz \\
+    Global Memory          & 8\,GB GDDR7 \\
+    Memory Interface       & 128-bit \\
+    Memory Bandwidth       & 448\,GB/s \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+The \gls{GPU} memory hierarchy spans registers (embedded in each \gls{SM}, accessed within a single cycle), shared memory and L1 cache (which share the same physical SRAM on each \gls{SM} with a configurable partition), L2 cache, and global memory (GDDR7). The \gls{KV} cache resides in global memory because its size far exceeds on-chip capacity. During decoding, each step streams the entire cache through the 448\,GB/s memory bus to compute attention. The resulting arithmetic intensity is very low, making decode throughput directly proportional to memory bandwidth~\cite{pope2023efficiently}. Reducing the cache size therefore reduces bytes streamed per step and increases generation throughput, independent of any capacity benefit.
+
+\subsection{Memory Layout During LLM Inference}
+\label{sec:bg-memory-layout}
+
+During inference, \gls{GPU} global memory is partitioned among four major consumers:
+
+\begin{enumerate}
+  \item \textbf{Model weights.} Static and loaded once at initialization. Under \gls{FP16}, LLaMA~3.1 8B occupies approximately 16\,GB. The Q4\_K\_M quantization format used by llama.cpp stores weights in 4-bit precision with block-wise \gls{FP16} scaling factors (block size 256), yielding roughly 4.9\,GB for this model.
+  \item \textbf{\gls{KV} cache.} The primary dynamic allocation, growing linearly with sequence length as detailed in Section~\ref{sec:bg-kv-cache}.
+  \item \textbf{Activations.} Intermediate tensors computed during the forward pass. During decode with batch size~1, these consume tens of megabytes. During prefill over a long prompt, they scale with prompt length and can reach several hundred megabytes. The estimates below assume the decode phase.
+  \item \textbf{Framework overhead.} \gls{CUDA} context, memory allocator metadata, and runtime buffers, typically 500\,MB to 1\,GB.
+\end{enumerate}
+
+Table~\ref{tab:memory-budget} presents a representative memory budget using LLaMA~3.1 8B on the RTX~5060. The other models evaluated in this project (Gemma~2 9B, Qwen~2.5 7B, and Phi-3 Mini 3.8B) are all quantized to Q4\_K\_M and fall in the 2.4--5.4\,GB weight range, yielding comparable constraints.
+
+\begin{table}[!ht]
+  \centering
+  \caption{Analytically estimated memory budget for LLaMA~3.1 8B inference on the RTX~5060 (8\,GB GDDR7, Q4\_K\_M weights, \gls{FP16} \gls{KV} cache). Activation and overhead values are order-of-magnitude approximations; exact values will be validated through Nsight profiling. If measured overhead exceeds these estimates, the available \gls{KV} cache budget and maximum context length decrease accordingly.}
+  \label{tab:memory-budget}
+  \begin{tabular}{l r}
+    \toprule
+    \textbf{Component} & \textbf{Approximate Size} \\
+    \midrule
+    Model weights (Q4\_K\_M)               & 4.9\,GB \\
+    Framework overhead                      & 0.8\,GB \\
+    Activation buffers (decode phase)       & 0.3\,GB \\
+    \textbf{Available for KV cache}         & \textbf{$\sim$2.0\,GB} \\
+    \midrule
+    \textit{Total GDDR7}                    & 8.0\,GB \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+With 2.0\,GB available and a per-token \gls{KV} cache cost of 128\,KB (Equation~\ref{eq:kv-per-token}), the system can cache at most $2.0 \times 1024^2 / 128 = 16{,}384$ tokens, roughly 13\% of LLaMA~3.1's native 128K context window. Notably, llama.cpp pre-allocates the entire \gls{KV} cache buffer at initialization rather than growing it dynamically. The user-specified \texttt{-c} flag controls this pre-allocated context size; if omitted, llama.cpp defaults to the model's maximum context length. On the target hardware, setting \texttt{-c} to a value that fits within available memory is necessary to avoid an immediate \gls{OOM} at startup. When the sequence exceeds the pre-allocated length, llama.cpp falls back to its built-in context-shifting mechanism, which discards the oldest tokens in bulk. Quantifying the cost of these mechanisms under varying context lengths and offloading ratios is a central goal of this project.
+
+
+\subsection{The PCIe Bottleneck and CPU Offloading}
+\label{sec:bg-pcie}
+
+When the \gls{KV} cache exceeds \gls{GPU} memory, a common fallback is to offload portions to \gls{CPU} \gls{DRAM}, which typically provides 16--64\,GB of capacity. However, data transfer between \gls{GPU} and \gls{CPU} traverses the PCIe bus, which imposes a severe bandwidth constraint.
+
+The RTX~5060 supports PCIe~5.0 x16, providing a theoretical peak of 64\,GB/s per direction. Its GDDR7 global memory delivers 448\,GB/s~\cite{nvidia2025rtx50series}, a gap of approximately 7$\times$. In practice, effective PCIe throughput is further reduced by protocol overhead and contention~\cite{sheng2023flexgen}.
+
+Consider a concrete scenario on the RTX~5060. As shown in Table~\ref{tab:memory-budget}, approximately 2.0\,GB is available for the \gls{KV} cache. If a sequence requires 3.0\,GB of cache, the 1.0\,GB overflow must reside in \gls{CPU} DRAM. During each decode step, the attention kernel must access the full cache. Transferring 1.0\,GB from \gls{CPU} to \gls{GPU} over PCIe~5.0 x16 (theoretical peak: 64\,GB/s per direction) takes at least 15\,ms at peak throughput. In practice, effective bandwidth depends on transfer granularity, pinned-memory usage, and bus contention, and is typically 50--80\% of the theoretical peak~\cite{sheng2023flexgen}, placing the realistic transfer time in the range of 20--30\,ms. Even with prefetching techniques that overlap transfer and computation~\cite{lee2024infinigen}, the fundamental bandwidth gap limits the achievable latency reduction.
+
+This analysis establishes a clear design constraint: for real-time inference on consumer hardware, the \gls{KV} cache should reside entirely within \gls{GPU} memory. \gls{CPU} offloading incurs prohibitive latency under strict response-time requirements, motivating in-place eviction as the primary compression strategy.
+%% ============================================================
+%% 2.4 KV Cache Management in Serving Systems
+%% ============================================================
+\section{KV Cache Memory Management in Serving Systems}
+\label{sec:bg-cache-management}
+
+As established in Section~\ref{sec:bg-memory-layout}, model weights impose a static, one-time memory cost, whereas the \gls{KV} cache grows continuously with sequence length. Efficient management of this dynamic allocation is therefore central to modern serving systems. The following subsections trace the evolution from static pre-allocation to virtual-memory-inspired paging and then examine data reduction techniques that decrease cache size.
+
+\subsection{Memory Allocation: From Static Buffers to PagedAttention}
+\label{sec:bg-allocation}
+
+Early inference frameworks, such as NVIDIA FasterTransformer~\cite{nvidia2023fastertransformer}, pre-allocate a contiguous memory buffer for each sequence sized to the model's maximum supported context length. For LLaMA~3.1 8B with a 128K-token context window, this reserves approximately 16\,GB of \gls{KV} cache per sequence (Table~\ref{tab:kv-cache-size}), regardless of the actual number of tokens generated. This static strategy suffers from two forms of waste:
+
+\begin{itemize}
+  \item \textbf{Internal fragmentation.} If a sequence uses only 2\,048 of the 128K reserved tokens, over 98\% of the allocated buffer remains unused but unavailable to other sequences.
+  \item \textbf{Batch-size limitation.} Because each sequence in a batch holds its maximum reservation, the total number of concurrent sequences is determined by the worst-case per-sequence allocation rather than actual usage. On an 8\,GB \gls{GPU} where only $\sim$2\,GB is available for the \gls{KV} cache (Table~\ref{tab:memory-budget}), even a single sequence's full reservation vastly exceeds capacity.
+\end{itemize}
+
+Kwon et al.~\cite{kwon2023efficient} addressed these inefficiencies with \textbf{PagedAttention}, introduced in the vLLM serving system. The design borrows the virtual-memory paging concept from operating systems. Instead of reserving a contiguous buffer per sequence, the \gls{KV} cache is partitioned into fixed-size \textit{physical blocks}, each holding the key and value tensors for a small number of tokens (typically 16). A per-sequence \textit{block table} maps logical token positions to physical block locations in \gls{GPU} memory, analogous to how an OS page table maps virtual addresses to physical frames.
+
+Blocks are drawn on demand from a shared free-block pool. When a sequence completes or is preempted, its blocks are returned to the pool for reuse. This mechanism provides three key benefits:
+
+\begin{enumerate}
+  \item \textbf{Near-zero internal fragmentation.} Memory is allocated in small increments as the sequence grows, so only the last block of each sequence may contain unused slots.
+  \item \textbf{Flexible batch scheduling.} The total \gls{KV} cache budget is shared across all active sequences based on their actual lengths, enabling higher concurrency when sequences vary in length.
+  \item \textbf{Memory sharing.} Sequences that share a common prefix (e.g., in parallel sampling or beam search) can reference the same physical blocks via copy-on-write semantics, avoiding data duplication~\cite{kwon2023efficient}.
+\end{enumerate}
+
+\subsection{KV Cache Management in llama.cpp}
+\label{sec:bg-llamacpp-kv}
+The inference framework used in this project, llama.cpp~\cite{llamacpp2025}, does not implement vLLM-style PagedAttention. Instead, it pre-allocates a single contiguous \gls{KV} cache buffer at initialization and manages token slots through a \textit{cell-based} bookkeeping mechanism: each cell corresponds to one token position, and a bitset tracks which cells are occupied by which sequences. A ring-buffer head pointer records where the allocator should begin searching for free cells.
+
+llama.cpp provides two built-in mechanisms for reclaiming cache capacity. First, \textit{context shifting} (\texttt{--ctx-shift}): when the cache is full, the system discards the oldest non-sink tokens in bulk and shifts the remaining entries forward, freeing a contiguous region at the tail. Second, \textit{defragmentation} (\texttt{defrag}): when evictions or sequence completions leave the cell array sparsely occupied, the defragmenter compacts occupied cells toward the front of the buffer, consolidating free space into a contiguous block.
+
+Both mechanisms operate on individual cells within a flat buffer, not on variable-sized blocks managed through a page table. This avoids the complexity of block tables and scatter--gather kernels but suffers from the internal fragmentation and inflexible memory sharing described above. Understanding the performance overhead of context shifting and defragmentation under varying context lengths and memory pressure is a key objective of this project.
+
+\subsection{KV Cache Data Reduction Techniques}
+\label{sec:bg-data-reduction}
+
+Despite the allocation benefits of PagedAttention, it optimizes the \textit{utilization} of allocated memory without reducing the \textit{total volume} of cached data. Every generated token still produces a full-sized key--value entry. When the aggregate \gls{KV} cache exhausts the physical block pool, the system must reject requests, queue them, or swap blocks to \gls{CPU} memory, reintroducing the PCIe bottleneck of Section~\ref{sec:bg-pcie}. Reducing per-sequence data volume requires a complementary approach: data reduction.
+
+Data reduction techniques decrease the physical size of the \gls{KV} cache by operating on the per-token memory formula established in Equation~\ref{eq:kv-memory}:
+%
+\begin{equation*}
+  M_{\text{KV}} = 2 \times n_{\text{layers}} \times n_{\text{kv}} \times d_{\text{head}} \times L \times b
+\end{equation*}
+%
+Since the architectural parameters ($n_{\text{layers}}$, $n_{\text{kv}}$, $d_{\text{head}}$) are fixed by the pre-trained model, two reduction dimensions remain: reducing the per-element byte cost~$b$ through \textbf{quantization}, and reducing the number of cached tokens~$L$ through \textbf{eviction}. These two dimensions are orthogonal and can be applied in combination.
+
+\textbf{Quantization.} \gls{KV} cache quantization stores key and value tensors in lower numerical precision than the model's native format. Replacing \gls{FP16} ($b=2$) with 4-bit integers ($b=0.5$) yields a $4\times$ memory reduction per token. Hooper et al.~\cite{hooper2024kvquant} propose KVQuant, which applies per-channel key quantization and per-token value quantization down to INT4 and INT2 formats, achieving up to $4\times$ compression with less than 0.1 perplexity degradation on LLaMA models. Similarly, KIVI~\cite{liu2024kivi} quantizes keys per-channel and values per-token to INT2, and demonstrates that maintaining a small residual buffer of recent tokens in full precision effectively preserves output quality. These methods are compatible with the PagedAttention framework: each physical block simply stores quantized tensors instead of full-precision ones.
+
+However, quantization has a fundamental limit. Even at an aggressive INT2 format, the per-token cost is reduced by $8\times$ but the number of stored tokens~$L$ remains unchanged. For a 128K-token context on the target hardware, the \gls{KV} cache would still require $16\,\text{GB} / 8 = 2\,\text{GB}$, consuming the \textit{entire} available budget (Table~\ref{tab:memory-budget}). Any growth beyond this length, or any need for concurrent sequences, would still exceed physical capacity.
+
+\textbf{Token eviction.} Token-level eviction addresses the complementary dimension by reducing~$L$: selectively removing \gls{KV} entries deemed unlikely to influence future generation. The attention score distributions analyzed in Section~\ref{sec:bg-attention-distribution} (attention sinks, heavy-hitter concentration, and local recency bias) provide the empirical basis for identifying which tokens can be safely discarded. Concrete eviction algorithms and their trade-offs are surveyed in Section~\ref{sec:bg-related-work}.
+
+\textbf{Positioning of this project.} Table~\ref{tab:kv-management-comparison} summarizes the three management strategies and their target dimensions. This project does not propose a new strategy; instead, it provides system-level profiling baselines missing from the literature. By characterizing the cost structure of inference under varying context lengths and offloading ratios on consumer hardware, the results inform which strategy offers the greatest practical benefit in memory-constrained settings. The eviction-based approaches in Section~\ref{sec:bg-related-work} are particularly relevant, as the profiling data produced here can serve as the baseline for evaluating future eviction implementations.
+
+
+\begin{table}[!ht]
+  \centering
+  \caption{Comparison of \gls{KV} cache management strategies and their target dimensions in Equation~\ref{eq:kv-memory}.}
+  \label{tab:kv-management-comparison}
+  \resizebox{\textwidth}{!}{%
+  \begin{tabular}{@{} l l l l @{}}
+    \toprule
+    \textbf{Strategy} & \textbf{Target} & \textbf{Mechanism} & \textbf{Limitation} \\
+    \midrule
+    Static allocation & --- & Pre-allocate max-length buffer & Severe fragmentation \\
+    PagedAttention & Utilization & On-demand block paging & Total data unchanged \\
+    Quantization & Byte cost~$b$ & Lower-precision storage & Token count unchanged \\
+    Eviction & Token count~$L$ & Remove low-importance KV entries & Accuracy trade-off \\
+    \bottomrule
+  \end{tabular}
+  }
+\end{table}
+%% ============================================================
+%% 2.5 Related Work
+%% ============================================================
+\section{Related Work}
+\label{sec:bg-related-work}
+
+This section surveys existing approaches to \gls{KV} cache optimization. The discussion is organized into three categories: eviction-based methods that reduce the number of cached tokens (Section~\ref{sec:bg-eviction}), compute, access, and placement optimizations that improve how the cache is used without reducing its size (Section~\ref{sec:bg-compute-access}), and model-level alternatives that modify the architecture or representation itself (Section~\ref{sec:bg-model-level}). Section~\ref{sec:bg-summary} concludes with a comparative summary and identifies the research gap addressed by this project.
+
+\subsection{Eviction-Based Approaches}
+\label{sec:bg-eviction}
+
+Eviction-based methods dynamically identify and remove low-importance \gls{KV} entries during inference, directly reducing the number of stored tokens~$L$ in Equation~\ref{eq:kv-memory}. These methods are the most directly related to this project.
+
+\textbf{H\textsubscript{2}O (Heavy-Hitter Oracle).} Zhang et al.~\cite{zhang2024h2o} partition the \gls{KV} cache into three mutually exclusive regions: a fixed \textit{sink region} that unconditionally retains the initial tokens, a scored \textit{heavy-hitter region} that keeps the top-$k$ tokens by cumulative attention score, and a \textit{recent window} that preserves the most recent tokens. Eviction targets are drawn exclusively from tokens outside these three regions. In their reported configurations on OPT-6.7B and LLaMA-7B, H\textsubscript{2}O retains as few as 20\% of the \gls{KV} cache tokens while preserving competitive task accuracy on benchmarks including COPA, OpenBookQA, and PiQA, though the exact retention--accuracy trade-off varies across tasks and models.
+
+\textbf{ScissorHands.} Liu et al.~\cite{liu2024scissorhands} propose the \textit{persistence of importance} hypothesis: tokens that have historically received low attention are unlikely to become important in future steps. ScissorHands evicts tokens whose maximum attention score across recent steps falls below a threshold. On LLaMA-2 7B/13B, the method compresses the \gls{KV} cache to approximately 30\% of its original size with minimal perplexity increase on WikiText-103 (the authors report sub-point absolute degradation in their evaluated settings). Compared to H\textsubscript{2}O's cumulative-score criterion, ScissorHands uses a max-score criterion, making it more sensitive to individual high-attention events.
+
+\textbf{FastGen.} Ge et al.~\cite{ge2024model} observe that different attention heads exhibit structurally different access patterns---some concentrate on special tokens, others on punctuation, and yet others attend locally. FastGen profiles each head and assigns a per-head compression policy, reporting that it retains 35--45\% of the original cache entries on LLaMA-1 30B with small accuracy degradation on their evaluated long-form generation tasks. This per-head heterogeneity improves the quality-compression trade-off relative to uniform eviction policies such as H\textsubscript{2}O.
+
+\textbf{StreamingLLM.} Xiao et al.~\cite{xiao2024efficient} demonstrate that retaining only the initial attention-sink tokens and a fixed-size sliding window of recent tokens enables stable generation over arbitrarily long sequences. StreamingLLM is essentially an extreme eviction policy: it discards all tokens between the sink and the recent window without any scoring mechanism, maintaining a constant cache size. On LLaMA-2 7B/70B with 4 attention sink tokens and a recent window of 1\,020 tokens, the method maintains stable perplexity over sequences exceeding 4 million tokens, validating the attention-sink hypothesis at scale. However, it is unsuitable for tasks requiring retrieval from the middle of a long context, as all mid-sequence information is permanently lost.
+
+\textbf{Analysis.} These methods collectively validate that \gls{KV} cache eviction can achieve substantial compression (retaining 20--30\% of tokens) with acceptable accuracy loss. H\textsubscript{2}O and ScissorHands use scoring-based eviction with different importance metrics; FastGen adds per-head policy heterogeneity; StreamingLLM provides a score-free extreme baseline. However, all four operate at the algorithm level. Their evaluations measure task accuracy under cache compression but do not address physical memory reclamation: evicted entries are logically excluded from attention computation, yet the underlying memory remains allocated. None reports system-level metrics such as throughput, end-to-end latency, or effective memory utilization after eviction.
+
+\subsection{Compute, Access, and Placement Optimizations}
+\label{sec:bg-compute-access}
+
+The methods in this category optimize how the \gls{KV} cache is computed, accessed, or placed across the memory hierarchy, without reducing the total number of cached tokens. They are orthogonal to eviction and can be composed with it. The subsection distinguishes two sub-categories: \textit{access optimizations} that improve the efficiency of attention computation on \gls{GPU}, and \textit{placement optimizations} that extend effective capacity by leveraging \gls{CPU} memory.
+
+\subsubsection*{Access Optimizations}
+\textbf{FlashAttention.} Dao et al.~\cite{dao2022flashattention} optimize attention computation by tiling the operation and fusing softmax with the matrix multiplication, thereby avoiding materialization of the full $L \times L$ attention matrix in global memory. FlashAttention-2~\cite{dao2023flashattention2} further improves parallelism and work partitioning. The inference framework used in this project, llama.cpp, implements its own \gls{CUDA} attention kernels using the same tiling and online softmax techniques, though it does not depend on the FlashAttention library directly. These optimizations reduce activation memory and improve compute throughput through better on-chip SRAM utilization. Neither version, however, modifies the \gls{KV} cache: the full cache remains in global memory and is streamed during each decode step.
+
+\textbf{Quest.} Tang et al.~\cite{tang2024quest} exploit the observation that tokens within the same \gls{KV} page tend to share similar importance. The method stores lightweight page-level metadata and uses it to select only the relevant pages for each query at attention time, skipping irrelevant pages. This reduces memory reads per decode step but does not physically evict any cache entries.
+
+\subsubsection*{Placement Optimizations}
+
+\textbf{FlexGen.} Sheng et al.~\cite{sheng2023flexgen} formulate the offloading schedule as a linear programming problem over the \gls{GPU}--\gls{CPU}--disk memory hierarchy, computing the optimal placement of weights, activations, and \gls{KV} cache across tiers to maximize throughput. FlexGen achieves large batch sizes on single \glspl{GPU} but operates with significantly higher per-token latency due to PCIe and disk I/O.
+
+\textbf{InfiniGen.} Lee et al.~\cite{lee2024infinigen} reduce the latency penalty of offloading through speculative prefetching: predicting which \gls{KV} cache pages will be needed in the next decode step and pre-transferring them from \gls{CPU} to \gls{GPU} while the current step executes. This hides a portion of the I/O latency but remains bounded by PCIe bandwidth for large transfers.
+
+Because FlashAttention and Quest leave the cached data intact, they are composable with eviction. FlexGen and InfiniGen, by contrast, extend effective capacity through the \gls{GPU}--\gls{CPU} hierarchy at the cost of I/O latency that grows with the volume of offloaded data.
+
+\subsection{Model-Level and Representation Alternatives}
+\label{sec:bg-model-level}
+
+The approaches in this category reduce \gls{KV} cache cost by modifying the model architecture or the representation of cached states.
+
+\textbf{Architectural modifications.} The Transformer community has progressively reduced the number of \gls{KV} heads to lower cache cost. Multi-Query Attention (MQA)~\cite{shazeer2019fast} collapses all \gls{KV} heads into one. Grouped-Query Attention (GQA)~\cite{ainslie2023gqa} shares each \gls{KV} head across a group of query heads, as adopted by LLaMA~3.1. Multi-Head Latent Attention (MLA) in DeepSeek-V2~\cite{deepseekv2} compresses key-value representations into a low-rank latent space, storing a single compressed vector per token per layer and reconstructing full key-value vectors on the fly. This MQA$\rightarrow$GQA$\rightarrow$MLA progression represents increasingly aggressive cache footprint reduction, but each step requires model retraining with the modified architecture. Linear attention variants such as RWKV~\cite{peng2023rwkv} and Mamba~\cite{gu2024mamba} take a fundamentally different approach: they replace softmax attention with recurrent or state-space formulations that maintain a fixed-size hidden state, eliminating the linear scaling of cache memory with sequence length.
+
+\textbf{Token merging and compression.} Dynamic Memory Compression (DMC)~\cite{nawrot2024dynamic} trains a lightweight decision module to decide at each step whether to append a new \gls{KV} entry or merge it with the previous one through a learned weighted average, producing a variable-length compressed cache. Cache Merging (CaM)~\cite{cam2024} applies merging at inference time without additional training: when a token is evicted, its key-value vectors are combined with a neighboring retained token's vectors through a weighted average. DMC requires training the decision module, while CaM introduces per-eviction computational overhead whose effectiveness depends on adjacent token similarity.
+
+All of these approaches modify the \gls{KV} representation rather than selectively removing entries from an existing cache. Architectural methods (MLA, linear attention) and DMC require model retraining; CaM avoids retraining but adds per-eviction computational overhead. They occupy a different design point from post-hoc eviction applied to pre-trained models.
+
+\subsection{Summary and Research Gap}
+\label{sec:bg-summary}
+
+Table~\ref{tab:related-work-summary} provides a comparative overview of the reviewed approaches across five key dimensions.
+
+\begin{table}[!ht]
+  \begin{center}
+    \caption{Comparative summary of \gls{KV} cache optimization approaches. \textbf{Retraining}: requires model retraining or architectural change. \textbf{GPU-only}: operates entirely within \gls{GPU}-local memory without \gls{CPU} offloading. \textbf{Mem.\ Reclaim}: physically reclaims freed cache memory through in-place compaction. \textbf{System Eval}: includes system-level profiling or serving metrics (throughput, latency). A dash indicates the dimension is not evaluated.}
+    \label{tab:related-work-summary}
+    \resizebox{\textwidth}{!}{%
+    \begin{tabular}{l l c c c c}
+      \toprule
+      \textbf{Method} & \textbf{Category} & \textbf{Retraining} & \textbf{GPU-only} & \textbf{Mem.\ Reclaim} & \textbf{System Eval} \\
+      \midrule
+      H\textsubscript{2}O~\cite{zhang2024h2o}             & Eviction               & No  & Yes & No  & No  \\
+      ScissorHands~\cite{liu2024scissorhands}              & Eviction               & No  & Yes & No  & No  \\
+      FastGen~\cite{ge2024model}                           & Eviction               & No  & Yes & No  & No  \\
+      StreamingLLM~\cite{xiao2024efficient}                & Eviction               & No  & Yes & No  & No  \\
+      \midrule
+      FlashAttention~\cite{dao2022flashattention}          & Access Opt.            & No  & Yes & No  & Yes \\
+      Quest~\cite{tang2024quest}                           & Access Opt.            & No  & Yes & No  & --  \\
+      FlexGen~\cite{sheng2023flexgen}                      & Placement Opt.         & No  & No  & No  & Yes \\
+      InfiniGen~\cite{lee2024infinigen}                    & Placement Opt.         & No  & No  & No  & --  \\
+      \midrule
+      MQA/GQA~\cite{shazeer2019fast, ainslie2023gqa}      & Model-Level (Arch.)    & Yes & Yes & N/A & Yes \\
+      MLA~\cite{deepseekv2}                                & Model-Level (Arch.)    & Yes & Yes & N/A & Yes \\
+      RWKV/Mamba~\cite{peng2023rwkv, gu2024mamba}          & Model-Level (Arch.)    & Yes & Yes & N/A & --  \\
+      DMC~\cite{nawrot2024dynamic}                         & Model-Level (Merging)  & Yes & Yes & No  & No  \\
+      CaM~\cite{cam2024}                                   & Model-Level (Merging)  & No  & Yes & No  & No  \\
+      \bottomrule
+    \end{tabular}%
+    }
+  \end{center}
+\end{table}
+
+
+As Table~\ref{tab:related-work-summary} shows, existing eviction methods validate the feasibility of attention-based cache compression but evaluate it exclusively through task accuracy metrics. None reports system-level profiling data on consumer-grade hardware. Per-stage latency breakdowns, \gls{GPU} compute unit utilization, memory bandwidth consumption, and \gls{KV} cache offloading overhead are all absent. Placement optimizations such as FlexGen and InfiniGen measure throughput but target datacenter or high-memory configurations, not the 8\,GB consumer \gls{GPU} setting. Model-level alternatives require retraining.
+
+The gap is the absence of systematic, hardware-level profiling baselines for long-context \gls{LLM} inference on memory-constrained consumer \glspl{GPU}. Without such baselines, it is difficult to determine where the dominant bottlenecks lie, how much overhead offloading imposes at different ratios, or which pipeline stages offer the greatest optimization potential. This project addresses this gap through a comprehensive profiling study of llama.cpp on an 8\,GB consumer \gls{GPU}, producing the quantitative baselines needed to guide future \gls{KV} cache optimization.
+
+
+% % Print the bibliography (and make it appear in the table of contents)
+\renewcommand{\bibname}{References}
+
+
+\iftoggle{biblatex}{
+    %\typeout{Biblatex current language is \currentlang}
+    \printbibliography[heading=bibintoc]
+}{
+    \phantomsection  % make it include a hyperref - see https://tex.stackexchange.com/a/98995
+    \addcontentsline{toc}{chapter}{References}
+    \bibliography{references}
+}
+
+% \label{pg:lastPageofMainmatter}
+
+
+\end{document}
